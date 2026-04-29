@@ -1,0 +1,35 @@
+# Frontend
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: quotesweb # Change only with Service name updates and DNS expectations.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  to:
+    kind: Service
+    name: quotesweb # Must match frontend Service metadata.name.
+  port:
+    targetPort: 3000-tcp # Must match Service port name, not containerPort directly.
+  tls:
+    termination: edge # Use passthrough/reencrypt for end-to-end TLS requirements.
+    insecureEdgeTerminationPolicy: Redirect # Redirect HTTP to HTTPS; set None to allow plain HTTP.
+---
+# Backend
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: quotes # Keep aligned with Service naming and any hostname conventions.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  to:
+    kind: Service
+    name: quotes # Must match backend Service metadata.name.
+  port:
+    targetPort: 10000-tcp # Must match backend Service port name.
+  tls:
+    termination: edge # Change based on backend TLS architecture.
+    insecureEdgeTerminationPolicy: Redirect # Recommended in production for HTTPS-only access.

@@ -1,0 +1,102 @@
+# Frontend
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quotesweb # Change only if related Service/Route names are updated too.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  replicas: 1 # Raise/lower for baseline capacity (unless you add an HPA for frontend).
+  selector:
+    matchLabels:
+      app: quotesweb # Must match template.labels exactly; do not drift.
+  template:
+    metadata:
+      labels:
+        app: quotesweb
+    spec:
+      containers:
+        - name: quotes
+          ports:
+            - containerPort: 3000 # Change only if the app listens on another internal port.
+              protocol: TCP
+          image: 'quay.io/donschenck/quotesweb:v1' # Change tag/image to deploy new frontend versions.
+          imagePullPolicy: Always # Use IfNotPresent in stable environments to reduce pulls.
+---
+# Backend
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quotes # If changed, update Service, Route, and HPA scaleTargetRef.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  replicas: 1 # Baseline pods; HPA can scale from this minimum upward.
+  selector:
+    matchLabels:
+      app: quotes # Must match pod template labels and Service selector.
+  template:
+    metadata:
+      labels:
+        app: quotes
+    spec:
+      containers:
+        - name: quotes
+          image: 'quay.io/donschenck/quotes:v1' # Update for backend releases.
+          ports:
+            - containerPort: 10000 # Keep aligned with Service/Route target ports.
+              protocol: TCP
+          env:
+            - name: DB_SERVICE_NAME
+              value: mysql # Change only if DB Service name changes or external DB is used.
+          resources:
+            limits:
+              cpu: '2' # Tune for peak usage; too low can throttle, too high wastes quota.
+            requests:
+              cpu: '1' # Tune for scheduling and autoscaling behavior (HPA uses utilization).
+          imagePullPolicy: Always # IfNotPresent can reduce startup latency in repeated deploys.
+---
+# Database
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: mysql # If changed, update DB Service and backend DB_SERVICE_NAME.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  replicas: 1 # Keep at 1 for single-writer DB unless using clustered DB architecture.
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      volumes:
+        - name: mysqlvolume
+          persistentVolumeClaim:
+            claimName: mysqlvolume # Must match PVC metadata.name.
+      containers:
+        - resources:
+            limits:
+              cpu: 500m # Increase for higher query load.
+              memory: 512Mi # Increase to avoid OOM on larger datasets.
+          name: mariadb
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysqlpassword # Must match Secret metadata.name.
+                  key: password # Must match the key in Secret data.
+          ports:
+            - containerPort: 3306 # Default MySQL port; change only if DB configured differently.
+              protocol: TCP
+          imagePullPolicy: Always # For pinned tags, IfNotPresent is often sufficient.
+          volumeMounts:
+            - name: mysqlvolume
+              mountPath: /var/lib/mysql # Change only if DB image expects a different data path.
+          image: mariadb # Pin a version tag (for example mariadb:10.11) for reproducible deploys.

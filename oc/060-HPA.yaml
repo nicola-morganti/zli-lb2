@@ -1,0 +1,22 @@
+# Backend
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: quotes # Keep aligned with the target Deployment identity.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: quotes # Must match backend Deployment metadata.name.
+    apiVersion: apps/v1
+  minReplicas: 1 # Raise for higher baseline availability/traffic.
+  maxReplicas: 2 # Raise to allow more burst capacity (if cluster quota allows).
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu # Can switch/add memory or custom metrics if available in cluster.
+        target:
+          type: Utilization
+          averageUtilization: 80 # Lower value scales earlier; higher value scales later.

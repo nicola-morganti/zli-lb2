@@ -1,0 +1,16 @@
+# Database
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mysqlvolume # Change only if you also update every reference (Deployment claimName).
+  labels:
+    app: quotes-app # Optional: adjust for your app naming/selection conventions.
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  accessModes:
+    - ReadWriteOnce # Change if your storage and workload require multi-node write/read behavior.
+  resources:
+    requests:
+      storage: 5Gi # Increase when DB data grows; shrinking usually requires volume migration.
+  storageClassName: rbd-storagepool-cluster # Change per cluster/storage backend (must exist in cluster).
+  volumeMode: Filesystem # Usually Filesystem; use Block only for specific DB/storage setups.

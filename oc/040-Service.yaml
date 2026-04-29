@@ -1,0 +1,57 @@
+# Frontend
+kind: Service
+apiVersion: v1
+metadata:
+  name: quotesweb # Change only with matching Route and Deployment references.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  ports:
+    - name: 3000-tcp # If renamed, update Route spec.port.targetPort.
+      protocol: TCP
+      port: 3000 # Service port exposed in-cluster.
+      targetPort: 3000 # Pod container port; must match frontend Deployment containerPort.
+  selector:
+    app: quotesweb # Must match frontend pod label.
+---
+# Backend
+kind: Service
+apiVersion: v1
+metadata:
+  name: quotes # Change with matching Route and backend Deployment env references.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  ports:
+    - name: 10000-tcp
+      protocol: TCP
+      port: 10000 # Primary backend app port used by Route.
+      targetPort: 10000 # Must match backend containerPort.
+    - name: 8443-tcp
+      protocol: TCP
+      port: 8443 # Optional management/auxiliary port; remove if unused.
+      targetPort: 8443 # Must exist in container listener if kept.
+    - name: 8778-tcp
+      protocol: TCP
+      port: 8778 # Optional management/auxiliary port; remove if unused.
+      targetPort: 8778 # Must exist in container listener if kept.
+  selector:
+    app: quotes # Must match backend pod label.
+---
+# Database
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql # Backend uses this name via DB_SERVICE_NAME env var.
+  labels:
+    app: quotes-app
+    app.kubernetes.io/part-of: quotes-app
+spec:
+  ports:
+    - protocol: TCP
+      port: 3306 # In-cluster DB port.
+      targetPort: 3306 # Must match DB containerPort.
+  selector:
+    app: mysql # Must match DB pod label.
