@@ -42,9 +42,11 @@ spec:
       labels:
         app: quotes
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: quotes
-          image: 'quay.io/donschenck/quotes:v1' # Update for backend releases.
+          image: ghcr.io/im24a-mendolag/quotes-postgres:latest
           ports:
             - containerPort: 10000 # Keep aligned with Service/Route target ports.
               protocol: TCP
