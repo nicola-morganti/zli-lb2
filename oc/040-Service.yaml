@@ -44,14 +44,14 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: mysql # Backend uses this name via DB_SERVICE_NAME env var.
+  name: postgres # Backend uses this name via DB_SERVICE_NAME env var.
   labels:
     app: quotes-app
     app.kubernetes.io/part-of: quotes-app
 spec:
   ports:
     - protocol: TCP
-      port: 3306 # In-cluster DB port.
-      targetPort: 3306 # Must match DB containerPort.
+      port: 5432 # In-cluster DB port.
+      targetPort: 5432 # Must match DB containerPort.
   selector:
-    app: mysql # Must match DB pod label.
+    app: postgres # Must match DB pod label.

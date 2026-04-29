@@ -2,7 +2,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: mysqlvolume # Change only if you also update every reference (Deployment claimName).
+  name: postgresvolume # Change only if you also update every reference (Deployment claimName).
   labels:
     app: quotes-app # Optional: adjust for your app naming/selection conventions.
     app.kubernetes.io/part-of: quotes-app

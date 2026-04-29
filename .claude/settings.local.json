@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/ims/bzz/210/quotes-app/**)",
+      "Bash(xargs cat *)",
+      "Bash(git -C /c/ims/bzz/m210/zli-lb2 ls-tree -r HEAD)",
+      "Bash(git -C /c/ims/bzz/m210/zli-lb2 config --file .gitmodules --list)",
+      "Bash(git -C /c/ims/bzz/m210/zli-lb2 remote -v)",
+      "Bash(xargs file *)"
+    ]
+  }
+}
